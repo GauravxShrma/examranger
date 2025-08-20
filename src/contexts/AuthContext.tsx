@@ -8,6 +8,7 @@ export interface User {
   name: string;
   email: string;
   role: 'admin' | 'user';
+  hasCompletedOnboarding?: boolean;
 }
 
 // Define auth context type
@@ -18,6 +19,7 @@ interface AuthContextType {
   register: (name: string, email: string, password: string) => Promise<void>;
   logout: () => void;
   isAdmin: boolean;
+  completeOnboarding: () => void;
 }
 
 // Create context with default values
@@ -28,6 +30,7 @@ const AuthContext = createContext<AuthContextType>({
   register: async () => {},
   logout: () => {},
   isAdmin: false,
+  completeOnboarding: () => {},
 });
 
 // Mock users for demo purposes
@@ -37,12 +40,14 @@ const MOCK_USERS: User[] = [
     name: 'Admin User',
     email: 'admin@example.com',
     role: 'admin',
+    hasCompletedOnboarding: true,
   },
   {
     id: '2',
     name: 'Test User',
     email: 'user@example.com',
-    role: 'user',
+    role: 'admin', // Changed to admin so user can manage subjects and create exams
+    hasCompletedOnboarding: true,
   },
 ];
 
@@ -108,6 +113,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         name,
         email,
         role: 'user',
+        hasCompletedOnboarding: false,
       };
       
       // Add to mock users (this would normally be handled by the backend)
@@ -133,11 +139,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     toast.success('Logged out successfully');
   };
 
+  // Complete onboarding function
+  const completeOnboarding = () => {
+    if (user) {
+      const updatedUser = { ...user, hasCompletedOnboarding: true };
+      setUser(updatedUser);
+      localStorage.setItem('examranger_user', JSON.stringify(updatedUser));
+      toast.success('Onboarding completed successfully!');
+    }
+  };
+
   // Check if user is admin
   const isAdmin = user?.role === 'admin';
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, isAdmin }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout, isAdmin, completeOnboarding }}>
       {children}
     </AuthContext.Provider>
   );

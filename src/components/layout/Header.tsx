@@ -33,9 +33,7 @@ export const Header: React.FC = () => {
               <>
                 <Link to="/dashboard" className="text-gray-700 hover:text-brand-600 transition-colors">Dashboard</Link>
                 <Link to="/exams" className="text-gray-700 hover:text-brand-600 transition-colors">Exams</Link>
-                {isAdmin && (
-                  <Link to="/admin" className="text-gray-700 hover:text-brand-600 transition-colors">Admin</Link>
-                )}
+                <Link to="/admin/subjects" className="text-gray-700 hover:text-brand-600 transition-colors">Manage Subjects</Link>
               </>
             ) : (
               <>
@@ -108,13 +106,11 @@ export const Header: React.FC = () => {
                       <Link to="/exams">Exams</Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
+                      <Link to="/admin/subjects">Manage Subjects</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
                       <Link to="/profile">Profile</Link>
                     </DropdownMenuItem>
-                    {isAdmin && (
-                      <DropdownMenuItem asChild>
-                        <Link to="/admin">Admin</Link>
-                      </DropdownMenuItem>
-                    )}
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={logout}>
                       <LogOut className="mr-2 h-4 w-4" />

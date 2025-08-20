@@ -13,9 +13,12 @@ import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 import Dashboard from "./pages/dashboard/Dashboard";
 import ExamsList from "./pages/exams/ExamsList";
+import CreateExam from "./pages/exams/CreateExam";
 import ExamDetail from "./pages/exams/ExamDetail";
 import ResultDetail from "./pages/results/ResultDetail";
 import AdminDashboard from "./pages/admin/AdminDashboard";
+import SubjectsManagement from "./pages/admin/SubjectsManagement";
+import Onboarding from "./pages/Onboarding";
 import Profile from "./pages/profile/Profile";
 import NotFound from "./pages/NotFound";
 
@@ -35,9 +38,12 @@ const App = () => (
               <Route path="/register" element={<Register />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/exams" element={<ExamsList />} />
+              <Route path="/exams/create" element={<CreateExam />} />
               <Route path="/exams/:id" element={<ExamDetail />} />
               <Route path="/results/:id" element={<ResultDetail />} />
               <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/admin/subjects" element={<SubjectsManagement />} />
+              <Route path="/onboarding" element={<Onboarding />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="*" element={<NotFound />} />
             </Routes>

@@ -1,6 +1,16 @@
 
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { toast } from 'sonner';
+import { aiService } from '@/lib/ai-service';
+
+// Define Subject type
+export interface Subject {
+  id: string;
+  name: string;
+  syllabus: string;
+  createdAt: string;
+  updatedAt: string;
+}
 
 // Define Question type
 export interface Question {
@@ -8,6 +18,7 @@ export interface Question {
   text: string;
   options: string[];
   correctAnswer: number; // Index of the correct option
+  explanation?: string;
 }
 
 // Define Exam type
@@ -15,9 +26,12 @@ export interface Exam {
   id: string;
   title: string;
   description: string;
+  subjectId: string;
   duration: number; // in minutes
   questions: Question[];
   isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 // Define Result type
@@ -36,102 +50,103 @@ export interface ExamResult {
 
 // Define context type
 interface ExamContextType {
+  subjects: Subject[];
   exams: Exam[];
   activeExam: Exam | null;
   results: ExamResult[];
   userResults: ExamResult[];
   setActiveExam: (exam: Exam | null) => void;
+  getAllSubjects: () => Subject[];
+  getSubjectById: (id: string) => Subject | undefined;
+  createSubject: (subject: Omit<Subject, 'id' | 'createdAt' | 'updatedAt'>) => void;
+  updateSubject: (subject: Subject) => void;
+  deleteSubject: (id: string) => void;
   getAllExams: () => Exam[];
   getExamById: (id: string) => Exam | undefined;
-  createExam: (exam: Omit<Exam, 'id'>) => void;
+  getExamsBySubject: (subjectId: string) => Exam[];
+  createExam: (exam: Omit<Exam, 'id' | 'createdAt' | 'updatedAt'>) => void;
   updateExam: (exam: Exam) => void;
   deleteExam: (id: string) => void;
   addQuestion: (examId: string, question: Omit<Question, 'id'>) => void;
   updateQuestion: (examId: string, question: Question) => void;
   deleteQuestion: (examId: string, questionId: string) => void;
+  generateQuestionsFromSyllabus: (subjectId: string, count?: number) => Promise<Question[]>;
   submitExam: (userId: string, examId: string, answers: number[]) => ExamResult;
   getUserResults: (userId: string) => ExamResult[];
   getRankings: (examId: string) => ExamResult[];
 }
 
 // Mock data
-const MOCK_EXAMS: Exam[] = [
+const MOCK_SUBJECTS: Subject[] = [
   {
     id: '1',
-    title: 'Introduction to Programming',
-    description: 'Basic concepts of programming for beginners',
-    duration: 30,
-    isActive: true,
-    questions: [
-      {
-        id: '1',
-        text: 'What does HTML stand for?',
-        options: [
-          'Hyper Text Markup Language', 
-          'High Technology Modern Language', 
-          'Hyper Transfer Markup Language', 
-          'Hyper Text Modern Links'
-        ],
-        correctAnswer: 0,
-      },
-      {
-        id: '2',
-        text: 'Which language is primarily used for styling web pages?',
-        options: ['HTML', 'JavaScript', 'CSS', 'Python'],
-        correctAnswer: 2,
-      },
-      {
-        id: '3',
-        text: 'Which symbol is used for single-line comments in JavaScript?',
-        options: ['#', '//', '/*', '<!--'],
-        correctAnswer: 1,
-      },
-      {
-        id: '4',
-        text: 'Which of these is not a JavaScript framework/library?',
-        options: ['React', 'Vue', 'Angular', 'Django'],
-        correctAnswer: 3,
-      },
-      {
-        id: '5',
-        text: 'What does API stand for?',
-        options: [
-          'Application Programming Interface',
-          'Automated Program Interaction',
-          'Application Process Integration',
-          'Advanced Programming Interface'
-        ],
-        correctAnswer: 0,
-      },
-    ],
+    name: 'Computer Science',
+    syllabus: 'Programming fundamentals, Data structures, Algorithms, Web development, Database systems, Software engineering principles, Object-oriented programming, System design, Network protocols, Security basics',
+    createdAt: '2023-01-01T00:00:00Z',
+    updatedAt: '2023-01-01T00:00:00Z',
   },
   {
     id: '2',
-    title: 'Mathematics 101',
-    description: 'Basic mathematics concepts',
-    duration: 45,
-    isActive: true,
+    name: 'Mathematics',
+    syllabus: 'Algebra, Calculus, Geometry, Trigonometry, Statistics, Probability, Linear algebra, Differential equations, Number theory, Mathematical logic',
+    createdAt: '2023-01-01T00:00:00Z',
+    updatedAt: '2023-01-01T00:00:00Z',
+  },
+];
+
+const MOCK_EXAMS: Exam[] = [
+  {
+    id: '1',
+    title: 'Computer Science Fundamentals',
+    description: 'Test your knowledge of programming basics, data structures, and algorithms.',
+    subjectId: '1',
+    duration: 30,
     questions: [
       {
         id: '1',
-        text: 'What is 2 + 2?',
-        options: ['3', '4', '5', '22'],
+        text: 'What is the time complexity of binary search?',
+        options: ['O(1)', 'O(log n)', 'O(n)', 'O(n²)'],
         correctAnswer: 1,
+        explanation: 'Binary search has a time complexity of O(log n) as it divides the search space in half with each iteration.'
       },
       {
         id: '2',
-        text: 'What is the value of π (pi) to two decimal places?',
-        options: ['3.14', '3.15', '3.16', '3.17'],
-        correctAnswer: 0,
-      },
+        text: 'Which data structure follows LIFO principle?',
+        options: ['Queue', 'Stack', 'Tree', 'Graph'],
+        correctAnswer: 1,
+        explanation: 'A Stack follows the Last In, First Out (LIFO) principle.'
+      }
+    ],
+    isActive: true,
+    createdAt: '2023-01-01T00:00:00Z',
+    updatedAt: '2023-01-01T00:00:00Z',
+  },
+  {
+    id: '2',
+    title: 'Mathematics Quiz',
+    description: 'Test your mathematical skills including algebra, calculus, and geometry.',
+    subjectId: '2',
+    duration: 45,
+    questions: [
       {
         id: '3',
-        text: 'What is the square root of 64?',
-        options: ['6', '7', '8', '9'],
-        correctAnswer: 2,
+        text: 'What is the derivative of x²?',
+        options: ['x', '2x', 'x²', '2x²'],
+        correctAnswer: 1,
+        explanation: 'The derivative of x² is 2x using the power rule.'
       },
+      {
+        id: '4',
+        text: 'What is the area of a circle with radius r?',
+        options: ['πr', 'πr²', '2πr', '2πr²'],
+        correctAnswer: 1,
+        explanation: 'The area of a circle is πr².'
+      }
     ],
-  },
+    isActive: true,
+    createdAt: '2023-01-01T00:00:00Z',
+    updatedAt: '2023-01-01T00:00:00Z',
+  }
 ];
 
 const MOCK_RESULTS: ExamResult[] = [
@@ -151,19 +166,27 @@ const MOCK_RESULTS: ExamResult[] = [
 
 // Create context
 const ExamContext = createContext<ExamContextType>({
+  subjects: [],
   exams: [],
   activeExam: null,
   results: [],
   userResults: [],
   setActiveExam: () => {},
+  getAllSubjects: () => [],
+  getSubjectById: () => undefined,
+  createSubject: () => {},
+  updateSubject: () => {},
+  deleteSubject: () => {},
   getAllExams: () => [],
   getExamById: () => undefined,
+  getExamsBySubject: () => [],
   createExam: () => {},
   updateExam: () => {},
   deleteExam: () => {},
   addQuestion: () => {},
   updateQuestion: () => {},
   deleteQuestion: () => {},
+  generateQuestionsFromSyllabus: async () => [],
   submitExam: () => ({
     id: '',
     examId: '',
@@ -180,14 +203,73 @@ const ExamContext = createContext<ExamContextType>({
 });
 
 export const ExamProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [exams, setExams] = useState<Exam[]>(MOCK_EXAMS);
-  const [results, setResults] = useState<ExamResult[]>(MOCK_RESULTS);
+  // Load data from localStorage on initialization
+  const [subjects, setSubjects] = useState<Subject[]>(() => {
+    const stored = localStorage.getItem('examranger_subjects');
+    return stored ? JSON.parse(stored) : MOCK_SUBJECTS;
+  });
+  
+  const [exams, setExams] = useState<Exam[]>(() => {
+    const stored = localStorage.getItem('examranger_exams');
+    return stored ? JSON.parse(stored) : MOCK_EXAMS;
+  });
+  
+  const [results, setResults] = useState<ExamResult[]>(() => {
+    const stored = localStorage.getItem('examranger_results');
+    return stored ? JSON.parse(stored) : MOCK_RESULTS;
+  });
+  
   const [activeExam, setActiveExam] = useState<Exam | null>(null);
+
+  // Save subjects to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('examranger_subjects', JSON.stringify(subjects));
+  }, [subjects]);
+
+  // Save exams to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('examranger_exams', JSON.stringify(exams));
+  }, [exams]);
+
+  // Save results to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('examranger_results', JSON.stringify(results));
+  }, [results]);
 
   // Get user results
   const userResults = results.sort((a, b) => 
     new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime()
   );
+
+  // Get all subjects
+  const getAllSubjects = () => subjects;
+
+  // Get subject by id
+  const getSubjectById = (id: string) => subjects.find(subject => subject.id === id);
+
+  // Create subject
+  const createSubject = (subject: Omit<Subject, 'id' | 'createdAt' | 'updatedAt'>) => {
+    const newSubject: Subject = {
+      ...subject,
+      id: (subjects.length + 1).toString(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    setSubjects([...subjects, newSubject]);
+    toast.success('Subject created successfully');
+  };
+
+  // Update subject
+  const updateSubject = (subject: Subject) => {
+    setSubjects(subjects.map(s => (s.id === subject.id ? subject : s)));
+    toast.success('Subject updated successfully');
+  };
+
+  // Delete subject
+  const deleteSubject = (id: string) => {
+    setSubjects(subjects.filter(subject => subject.id !== id));
+    toast.success('Subject deleted successfully');
+  };
 
   // Get all exams
   const getAllExams = () => exams;
@@ -195,11 +277,16 @@ export const ExamProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Get exam by id
   const getExamById = (id: string) => exams.find(exam => exam.id === id);
 
+  // Get exams by subject
+  const getExamsBySubject = (subjectId: string) => exams.filter(exam => exam.subjectId === subjectId);
+
   // Create exam
-  const createExam = (exam: Omit<Exam, 'id'>) => {
+  const createExam = (exam: Omit<Exam, 'id' | 'createdAt' | 'updatedAt'>) => {
     const newExam: Exam = {
       ...exam,
       id: (exams.length + 1).toString(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     };
     setExams([...exams, newExam]);
     toast.success('Exam created successfully');
@@ -271,6 +358,45 @@ export const ExamProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     setExams(exams.map(e => (e.id === examId ? updatedExam : e)));
     toast.success('Question deleted successfully');
+  };
+
+  // Generate questions from syllabus using AI
+  const generateQuestionsFromSyllabus = async (subjectId: string, count: number = 30): Promise<Question[]> => {
+    const subject = getSubjectById(subjectId);
+    if (!subject) {
+      toast.error('Subject not found');
+      return [];
+    }
+
+    try {
+      // Validate syllabus
+      const validation = aiService.validateSyllabus(subject.syllabus);
+      if (!validation.isValid) {
+        toast.error(`Syllabus validation failed: ${validation.errors.join(', ')}`);
+        return [];
+      }
+
+      // Check AI service status
+      const status = await aiService.getStatus();
+      if (status.status === 'offline') {
+        toast.error('AI service is currently unavailable');
+        return [];
+      }
+
+      // Generate questions using AI
+      const questions = await aiService.generateQuestions(
+        subject.name,
+        subject.syllabus,
+        count
+      );
+
+      toast.success(`Generated ${questions.length} questions successfully using AI!`);
+      return questions;
+    } catch (error) {
+      console.error('Error generating questions:', error);
+      toast.error('Failed to generate questions. Please try again.');
+      return [];
+    }
   };
 
   // Submit exam
@@ -359,19 +485,27 @@ export const ExamProvider: React.FC<{ children: React.ReactNode }> = ({ children
   return (
     <ExamContext.Provider
       value={{
+        subjects,
         exams,
         activeExam,
         results,
         userResults,
         setActiveExam,
+        getAllSubjects,
+        getSubjectById,
+        createSubject,
+        updateSubject,
+        deleteSubject,
         getAllExams,
         getExamById,
+        getExamsBySubject,
         createExam,
         updateExam,
         deleteExam,
         addQuestion,
         updateQuestion,
         deleteQuestion,
+        generateQuestionsFromSyllabus,
         submitExam,
         getUserResults,
         getRankings,

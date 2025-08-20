@@ -1,11 +1,11 @@
 
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Clock, FileText, Award } from 'lucide-react';
+import { Clock, FileText, Award, BookOpen } from 'lucide-react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Exam } from '@/contexts/ExamContext';
+import { Exam, useExam } from '@/contexts/ExamContext';
 
 interface ExamCardProps {
   exam: Exam;
@@ -14,6 +14,8 @@ interface ExamCardProps {
 
 export const ExamCard: React.FC<ExamCardProps> = ({ exam, userCompleted = false }) => {
   const navigate = useNavigate();
+  const { subjects } = useExam();
+  const subject = subjects.find(s => s.id === exam.subjectId);
 
   return (
     <Card className="overflow-hidden transition-all duration-300 hover:shadow-md animate-scale-in">
@@ -30,6 +32,13 @@ export const ExamCard: React.FC<ExamCardProps> = ({ exam, userCompleted = false 
       
       <CardContent className="pb-3">
         <p className="text-gray-600 mb-4 text-sm">{exam.description}</p>
+        
+        {subject && (
+          <div className="flex items-center mb-3 text-sm text-gray-500">
+            <BookOpen className="h-4 w-4 mr-1 text-brand-500" />
+            <span>{subject.name}</span>
+          </div>
+        )}
         
         <div className="flex flex-wrap gap-4 text-sm text-gray-500">
           <div className="flex items-center">
