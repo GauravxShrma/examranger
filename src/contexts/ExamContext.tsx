@@ -206,17 +206,53 @@ export const ExamProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Load data from localStorage on initialization
   const [subjects, setSubjects] = useState<Subject[]>(() => {
     const stored = localStorage.getItem('examranger_subjects');
-    return stored ? JSON.parse(stored) : MOCK_SUBJECTS;
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) {
+          return parsed as Subject[];
+        }
+        console.warn('Stored subjects is not an array, resetting.');
+      } catch (error) {
+        console.error('Failed to parse stored subjects:', error);
+      }
+      localStorage.removeItem('examranger_subjects');
+    }
+    return MOCK_SUBJECTS;
   });
-  
+
   const [exams, setExams] = useState<Exam[]>(() => {
     const stored = localStorage.getItem('examranger_exams');
-    return stored ? JSON.parse(stored) : MOCK_EXAMS;
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) {
+          return parsed as Exam[];
+        }
+        console.warn('Stored exams is not an array, resetting.');
+      } catch (error) {
+        console.error('Failed to parse stored exams:', error);
+      }
+      localStorage.removeItem('examranger_exams');
+    }
+    return MOCK_EXAMS;
   });
-  
+
   const [results, setResults] = useState<ExamResult[]>(() => {
     const stored = localStorage.getItem('examranger_results');
-    return stored ? JSON.parse(stored) : MOCK_RESULTS;
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) {
+          return parsed as ExamResult[];
+        }
+        console.warn('Stored results is not an array, resetting.');
+      } catch (error) {
+        console.error('Failed to parse stored results:', error);
+      }
+      localStorage.removeItem('examranger_results');
+    }
+    return MOCK_RESULTS;
   });
   
   const [activeExam, setActiveExam] = useState<Exam | null>(null);
@@ -237,8 +273,8 @@ export const ExamProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [results]);
 
   // Get user results
-  const userResults = results.sort((a, b) => 
-    new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime()
+  const userResults = [...results].sort(
+    (a, b) => new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime()
   );
 
   // Get all subjects
@@ -471,8 +507,11 @@ export const ExamProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Get user results
   const getUserResults = (userId: string) => {
     return results
-      .filter(result => result.userId === userId)
-      .sort((a, b) => new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime());
+      .filter((result) => result.userId === userId)
+      .sort(
+        (a, b) =>
+          new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime()
+      );
   };
 
   // Get rankings for a specific exam
