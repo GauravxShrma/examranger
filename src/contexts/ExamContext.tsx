@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { aiService } from '@/lib/ai-service';
@@ -208,11 +207,15 @@ export const ExamProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const stored = localStorage.getItem('examranger_subjects');
     if (stored) {
       try {
-        return JSON.parse(stored) as Subject[];
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) {
+          return parsed as Subject[];
+        }
+        console.warn('Stored subjects is not an array, resetting.');
       } catch (error) {
         console.error('Failed to parse stored subjects:', error);
-        localStorage.removeItem('examranger_subjects');
       }
+      localStorage.removeItem('examranger_subjects');
     }
     return MOCK_SUBJECTS;
   });
@@ -221,11 +224,15 @@ export const ExamProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const stored = localStorage.getItem('examranger_exams');
     if (stored) {
       try {
-        return JSON.parse(stored) as Exam[];
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) {
+          return parsed as Exam[];
+        }
+        console.warn('Stored exams is not an array, resetting.');
       } catch (error) {
         console.error('Failed to parse stored exams:', error);
-        localStorage.removeItem('examranger_exams');
       }
+      localStorage.removeItem('examranger_exams');
     }
     return MOCK_EXAMS;
   });
@@ -234,11 +241,15 @@ export const ExamProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const stored = localStorage.getItem('examranger_results');
     if (stored) {
       try {
-        return JSON.parse(stored) as ExamResult[];
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) {
+          return parsed as ExamResult[];
+        }
+        console.warn('Stored results is not an array, resetting.');
       } catch (error) {
         console.error('Failed to parse stored results:', error);
-        localStorage.removeItem('examranger_results');
       }
+      localStorage.removeItem('examranger_results');
     }
     return MOCK_RESULTS;
   });
