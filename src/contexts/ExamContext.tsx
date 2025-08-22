@@ -208,6 +208,7 @@ export const ExamProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const stored = localStorage.getItem('examranger_subjects');
     if (stored) {
       try {
+codex/fix-blank-page-on-exams-y3gfm3
         const parsed = JSON.parse(stored);
         if (Array.isArray(parsed)) {
           return parsed as Subject[];
@@ -217,6 +218,13 @@ export const ExamProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.error('Failed to parse stored subjects:', error);
       }
       localStorage.removeItem('examranger_subjects');
+
+        return JSON.parse(stored) as Subject[];
+      } catch (error) {
+        console.error('Failed to parse stored subjects:', error);
+        localStorage.removeItem('examranger_subjects');
+      }
+ main
     }
     return MOCK_SUBJECTS;
   });
@@ -225,6 +233,7 @@ export const ExamProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const stored = localStorage.getItem('examranger_exams');
     if (stored) {
       try {
+ codex/fix-blank-page-on-exams-y3gfm3
         const parsed = JSON.parse(stored);
         if (Array.isArray(parsed)) {
           return parsed as Exam[];
@@ -234,6 +243,13 @@ export const ExamProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.error('Failed to parse stored exams:', error);
       }
       localStorage.removeItem('examranger_exams');
+
+        return JSON.parse(stored) as Exam[];
+      } catch (error) {
+        console.error('Failed to parse stored exams:', error);
+        localStorage.removeItem('examranger_exams');
+      }
+> main
     }
     return MOCK_EXAMS;
   });
@@ -242,6 +258,7 @@ export const ExamProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const stored = localStorage.getItem('examranger_results');
     if (stored) {
       try {
+ codex/fix-blank-page-on-exams-y3gfm3
         const parsed = JSON.parse(stored);
         if (Array.isArray(parsed)) {
           return parsed as ExamResult[];
@@ -251,6 +268,13 @@ export const ExamProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.error('Failed to parse stored results:', error);
       }
       localStorage.removeItem('examranger_results');
+
+        return JSON.parse(stored) as ExamResult[];
+      } catch (error) {
+        console.error('Failed to parse stored results:', error);
+        localStorage.removeItem('examranger_results');
+      }
+ main
     }
     return MOCK_RESULTS;
   });
