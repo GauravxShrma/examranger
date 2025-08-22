@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { aiService } from '@/lib/ai-service';
@@ -212,7 +211,7 @@ export const ExamProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (Array.isArray(parsed)) {
           return parsed as Subject[];
         }
-        console.warn('Invalid subjects data in localStorage, resetting');
+        console.warn('Stored subjects is not an array, resetting.');
       } catch (error) {
         console.error('Failed to parse stored subjects:', error);
       }
@@ -229,7 +228,7 @@ export const ExamProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (Array.isArray(parsed)) {
           return parsed as Exam[];
         }
-        console.warn('Invalid exams data in localStorage, resetting');
+        console.warn('Stored exams is not an array, resetting.');
       } catch (error) {
         console.error('Failed to parse stored exams:', error);
       }
@@ -246,7 +245,7 @@ export const ExamProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (Array.isArray(parsed)) {
           return parsed as ExamResult[];
         }
-        console.warn('Invalid results data in localStorage, resetting');
+        console.warn('Stored results is not an array, resetting.');
       } catch (error) {
         console.error('Failed to parse stored results:', error);
       }
