@@ -4,7 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { ExamQuestion } from '@/components/exams/ExamQuestion';
 import { ExamTimer } from '@/components/exams/ExamTimer';
-import { useExam } from '@/contexts/ExamContext';
+import { useExam, Exam } from '@/contexts/ExamContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,8 +17,8 @@ const ExamDetail: React.FC = () => {
   const navigate = useNavigate();
   const { getExamById, submitExam } = useExam();
   const { user } = useAuth();
-  
-  const [exam, setExam] = useState(id ? getExamById(id) : undefined);
+
+  const [exam, setExam] = useState<Exam | undefined>(undefined);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<(number | null)[]>([]);
   const [submitted, setSubmitted] = useState(false);
@@ -26,6 +26,13 @@ const ExamDetail: React.FC = () => {
   const [showSubmitDialog, setShowSubmitDialog] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   
+  // Load exam data when id or exams change
+  useEffect(() => {
+    if (id) {
+      setExam(getExamById(id));
+    }
+  }, [id, getExamById]);
+
   // Initialize answers array
   useEffect(() => {
     if (exam) {
